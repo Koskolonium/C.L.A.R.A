@@ -15,7 +15,7 @@ As part of packet validation, C.L.A.R.A performs lightweight checks when players
 ## Lightweight Checks  
 Leveraging the data gathered during packet validation, C.L.A.R.A executes highly accurate lightweight checks to identify anomalies with reduced false positives.  
 
-- **Speed Detection:** Capable of identifying even subtle speed variations, such as changes of 102.5%, based on player activity.  
+- **Speed Detection:** Capable of identifying even subtle speed variations, such as changes of 2.5%, based on player activity.  
 - **Future Enhancements:** Advanced ReachChecks are in development and will be added in upcoming releases.  
 
 These checks are designed to balance precision and performance, ensuring effective cheat detection without overburdening server resources.  
