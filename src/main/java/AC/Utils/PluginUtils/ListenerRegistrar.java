@@ -63,6 +63,9 @@ public final class ListenerRegistrar {
 
         // Register a packet listener for vehicle movement updates
         PacketEvents.getAPI().getEventManager().registerListener(new VehicleMove());
+
+        // Register a packet listener for vehicle movement updates
+        PacketEvents.getAPI().getEventManager().registerListener(new LoginStart());
     }
 
     /**
