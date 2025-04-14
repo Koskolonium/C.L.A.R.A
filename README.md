@@ -1,10 +1,25 @@
 # Everything You Need to Know About C.L.A.R.A  
 
-## Section 1: Players Connecting  
-When players connect to the server, C.L.A.R.A runs lightweight checks to ensure their name and UUID follow Minecraft's formats. This adds an extra layer of protection against malicious fake packets, although it may have limited impact for most servers due to its minimal performance cost.
+C.L.A.R.A is a powerful tool for enhancing server security in Minecraft. By validating player connections and analyzing packet data, it effectively detects potential cheats with minimal impact on server performance.
 
-## Section 2: Packet Validation  
-C.L.A.R.A's core functionality revolves around intercepting and analyzing packets to verify their contents. This lightweight approach effectively detects many cheaters with minimal resource usage. Additional enhancements are planned for the future.    
+---
 
-## Section 3: Lightweight Checks  
-C.L.A.R.A uses data collected from packets to perform lightweight checks designed to be highly accurate, minimizing false flags. For example, it can detect speed variations as small as 102.5%, depending on player activity. Additionally, two state-of-the-art ReachChecks are planned, although they have not yet been implemented into the Beta Build.  
+## Packet Validation  
+Packet validation forms the core of C.L.A.R.A’s functionality. It intercepts and inspects player packets to ensure their contents align with expected standards, protecting the server against malicious activity.  
+
+### Player Connections  
+As part of packet validation, C.L.A.R.A performs lightweight checks when players connect to the server. This process verifies that usernames and UUIDs follow Minecraft's formats, providing an initial safeguard against fake packets while imposing minimal performance costs.  
+
+---
+
+## Lightweight Checks  
+Leveraging the data gathered during packet validation, C.L.A.R.A executes highly accurate lightweight checks to identify anomalies with reduced false positives.  
+
+- **Speed Detection:** Capable of identifying even subtle speed variations, such as changes of 102.5%, based on player activity.  
+- **Future Enhancements:** Advanced ReachChecks are in development and will be added in upcoming releases.  
+
+These checks are designed to balance precision and performance, ensuring effective cheat detection without overburdening server resources.
+
+---
+
+C.L.A.R.A is continually evolving, with plans for new features and improvements to further refine its capabilities.
