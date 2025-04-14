@@ -1,3 +1,4 @@
-C.L.A.R.A Consists of much more then what is present here there are many Development builds with many Alpha features not ready for the Beta Build.
+# Everything You Need to Know About C.L.A.R.A  
 
-Note: Development is slow i am trying to speed it up over the next few weeks.
+## Section 1: Players Connecting  
+When players connect to the server, C.L.A.R.A runs lightweight checks to ensure their name and UUID follow Minecraft's formats. This adds an extra layer of protection against malicious fake packets, although it may have limited impact for most servers due to its minimal performance cost.  
