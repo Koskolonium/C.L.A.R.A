@@ -33,7 +33,6 @@ public class LoginStart extends PacketListenerAbstract {
         String uuidString = playerUUID.map(UUID::toString).orElse(null);
         String playerIP = player.getAddress().getAddress().getHostAddress();
 
-        // Check rate limit and cancel packet if necessary
         long currentTime = System.currentTimeMillis();
         long lastRequestTime = rateLimitMap.getOrDefault(playerIP, 0L);
 
@@ -43,7 +42,6 @@ public class LoginStart extends PacketListenerAbstract {
             return;
         }
 
-        // Update rate limit timestamp
         rateLimitMap.put(playerIP, currentTime);
 
         boolean isValid = BadPacketsK.isValid(username, uuidString);
