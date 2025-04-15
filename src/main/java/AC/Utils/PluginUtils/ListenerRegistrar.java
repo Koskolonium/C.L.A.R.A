@@ -7,6 +7,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 /**
  * The ListenerRegistrar class is responsible for registering both packet listeners
@@ -28,7 +29,7 @@ public final class ListenerRegistrar {
      * @param speedCheckMap A ConcurrentHashMap managing SpeedCheckA instances for players.
      *                      This is specifically used by the Position packet listener.
      */
-    public static void registerPacketListeners(ConcurrentHashMap<UUID, SpeedCheckA> speedCheckMap) {
+    public static void registerPacketListeners(ConcurrentHashMap<UUID, SpeedCheckA> speedCheckMap, ExecutorService executorService) {
         // Register a packet listener for handling abilities-related packets
         PacketEvents.getAPI().getEventManager().registerListener(new Abilities());
 
@@ -64,8 +65,8 @@ public final class ListenerRegistrar {
         // Register a packet listener for vehicle movement updates
         PacketEvents.getAPI().getEventManager().registerListener(new VehicleMove());
 
-        // Register a packet listener for vehicle movement updates
-        PacketEvents.getAPI().getEventManager().registerListener(new LoginStart());
+        // Register a packet listener for LoginStart Packets.
+        PacketEvents.getAPI().getEventManager().registerListener(new LoginStart(executorService));
     }
 
     /**

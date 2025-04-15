@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 public class LoginStart extends PacketListenerAbstract {
 
@@ -20,6 +21,8 @@ public class LoginStart extends PacketListenerAbstract {
     private static final Map<String, Long> blacklistedIPs = new ConcurrentHashMap<>();
     private static final long RATE_LIMIT_DURATION = 15000; // 15 seconds
     private static final long BLACKLIST_DURATION = 60000; // 1 minute
+    private final ExecutorService executorService;
+
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
@@ -29,44 +32,43 @@ public class LoginStart extends PacketListenerAbstract {
     }
 
     private void handleLoginStart(Player player, PacketReceiveEvent event) {
-        String playerIPFull = Objects.requireNonNull(player.getAddress()).getAddress().getHostAddress();
-        String playerIP = getNetworkPortion(playerIPFull);
+        executorService.submit(() -> {
+            String playerIPFull = Objects.requireNonNull(player.getAddress()).getAddress().getHostAddress();
+            String playerIP = getNetworkPortion(playerIPFull);
 
-        // Instantly reject packets from blacklisted IPs
-        long blacklistTime = blacklistedIPs.getOrDefault(playerIP, 0L);
-        if (System.currentTimeMillis() - blacklistTime < BLACKLIST_DURATION) {
-            event.setCancelled(true);
-            return;
-        }
+            long blacklistTime = blacklistedIPs.getOrDefault(playerIP, 0L);
+            if (System.currentTimeMillis() - blacklistTime < BLACKLIST_DURATION) {
+                event.setCancelled(true);
+                return;
+            }
 
-        WrapperLoginClientLoginStart loginWrapper = new WrapperLoginClientLoginStart(event);
-        String username = loginWrapper.getUsername();
-        Optional<UUID> playerUUID = loginWrapper.getPlayerUUID();
-        String uuidString = playerUUID.map(UUID::toString).orElse(null);
+            WrapperLoginClientLoginStart loginWrapper = new WrapperLoginClientLoginStart(event);
+            String username = loginWrapper.getUsername();
+            Optional<UUID> playerUUID = loginWrapper.getPlayerUUID();
+            String uuidString = playerUUID.map(UUID::toString).orElse(null);
 
-        long currentTime = System.currentTimeMillis();
-        long lastRequestTime = rateLimitMap.getOrDefault(playerIP, 0L);
+            long currentTime = System.currentTimeMillis();
+            long lastRequestTime = rateLimitMap.getOrDefault(playerIP, 0L);
 
-        // Apply rate limiting before further processing
-        if (currentTime - lastRequestTime < RATE_LIMIT_DURATION) {
-            player.sendMessage("You are rate-limited. Please wait before retrying.");
-            event.setCancelled(true);
-            return;
-        }
+            if (currentTime - lastRequestTime < RATE_LIMIT_DURATION) {
+                player.sendMessage("You are rate-limited. Please wait before retrying.");
+                event.setCancelled(true);
+                return;
+            }
 
-        rateLimitMap.put(playerIP, currentTime);
+            rateLimitMap.put(playerIP, currentTime);
 
-        // Validate the packet data
-        boolean isValid = BadPacketsK.isValid(username, uuidString);
+            boolean isValid = BadPacketsK.isValid(username, uuidString);
 
-        if (!isValid) {
-            player.sendMessage("Bot Detected");
-            blacklistedIPs.put(playerIP, System.currentTimeMillis()); // Blacklist the IP
-            event.setCancelled(true);
-            return;
-        }
+            if (!isValid) {
+                blacklistedIPs.put(playerIP, System.currentTimeMillis());
+                event.setCancelled(true);
+                player.sendMessage("Bot Detected");
+                return;
+            }
 
-        System.out.println("Player " + username + " has IP: " + playerIP);
+            System.out.println("Player " + username + " has IP: " + playerIP);
+        });
     }
 
     private String getNetworkPortion(String ip) {
@@ -75,5 +77,9 @@ public class LoginStart extends PacketListenerAbstract {
             return parts[0] + "." + parts[1] + "." + parts[2];
         }
         return ip;
+    }
+
+    public LoginStart(ExecutorService executorService) {
+        this.executorService = executorService;
     }
 }

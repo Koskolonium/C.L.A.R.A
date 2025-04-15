@@ -34,7 +34,7 @@ public final class CLARA extends JavaPlugin {
         // Initialize the thread pool to use all available processors
         executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-        // Initialize PlayerOpStorage to store player operational data
+        // Initialize PlayerOpStorage to store player operator data.
         playerOpStorage = new PlayerOpStorage();
 
         // Initialize the ConcurrentHashMap to manage SpeedCheckA instances for players
@@ -44,7 +44,7 @@ public final class CLARA extends JavaPlugin {
         Messages.startUpComments();
 
         // Register packet listeners
-        ListenerRegistrar.registerPacketListeners(speedCheckMap);
+        ListenerRegistrar.registerPacketListeners(speedCheckMap, executorService);
 
         // Register event listeners and pass dependencies (PlayerOpStorage, SpeedCheckMap, and ThreadPool)
         ListenerRegistrar.registerEventListeners(this, new PlayerInitialisers(playerOpStorage, speedCheckMap, executorService));
