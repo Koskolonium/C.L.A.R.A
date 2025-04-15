@@ -1,85 +1,54 @@
 package AC.Packets.Client;
 
 import AC.Packets.BadPackets.BadPacketsK;
-import AC.Utils.PluginUtils.KickMessages;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.login.client.WrapperLoginClientLoginStart;
-import org.bukkit.entity.Player;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 public class LoginStart extends PacketListenerAbstract {
 
-    private static final Map<String, Long> rateLimitMap = new ConcurrentHashMap<>();
-    private static final Map<String, Long> blacklistedIPs = new ConcurrentHashMap<>();
-    private static final long RATE_LIMIT_DURATION = 15000; // 15 seconds
-    private static final long BLACKLIST_DURATION = 60000; // 1 minute
-    private final ExecutorService executorService;
+    // Constructor: Initializes the listener for login start packets.
+    public LoginStart() {
+        System.out.println("[DEBUG] LoginStart: Constructor initialized");
+    }
 
-
+    // Listens for incoming packets and triggers handling logic when a LOGIN_START packet is detected.
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
+        // The packet type is checked to ensure we only handle relevant login start packets.
         if (event.getPacketType() == PacketType.Login.Client.LOGIN_START) {
-            handleLoginStart(event.getPlayer(), event);
+            System.out.println("[DEBUG] onPacketReceive: Detected LOGIN_START packet");
+            handleLoginStart(event); // Delegates processing to a specific method.
         }
     }
 
-    private void handleLoginStart(Player player, PacketReceiveEvent event) {
-        executorService.submit(() -> {
-            String playerIPFull = Objects.requireNonNull(player.getAddress()).getAddress().getHostAddress();
-            String playerIP = getNetworkPortion(playerIPFull);
+    private void handleLoginStart(PacketReceiveEvent event) {
+        System.out.println("[DEBUG] handleLoginStart: Handling login start");
 
-            long blacklistTime = blacklistedIPs.getOrDefault(playerIP, 0L);
-            if (System.currentTimeMillis() - blacklistTime < BLACKLIST_DURATION) {
-                event.setCancelled(true);
-                return;
-            }
+        // Extracts username and UUID from the packet itself as the player object hasn't been created yet.
+        WrapperLoginClientLoginStart loginWrapper = new WrapperLoginClientLoginStart(event);
+        String username = loginWrapper.getUsername();
+        Optional<UUID> playerUUID = loginWrapper.getPlayerUUID();
+        String uuidString = playerUUID.map(UUID::toString).orElse(null);
 
-            WrapperLoginClientLoginStart loginWrapper = new WrapperLoginClientLoginStart(event);
-            String username = loginWrapper.getUsername();
-            Optional<UUID> playerUUID = loginWrapper.getPlayerUUID();
-            String uuidString = playerUUID.map(UUID::toString).orElse(null);
+        System.out.println("[DEBUG] handleLoginStart: Username: " + username);
+        System.out.println("[DEBUG] handleLoginStart: Player UUID: " + uuidString);
 
-            long currentTime = System.currentTimeMillis();
-            long lastRequestTime = rateLimitMap.getOrDefault(playerIP, 0L);
+        // Validates the username and UUID to ensure the request isn't from a bot or malformed packet.
+        boolean isValid = BadPacketsK.isValid(username, uuidString);
+        System.out.println("[DEBUG] handleLoginStart: Username and UUID validation result: " + isValid);
 
-            if (currentTime - lastRequestTime < RATE_LIMIT_DURATION) {
-                player.sendMessage("You are rate-limited. Please wait before retrying.");
-                event.setCancelled(true);
-                return;
-            }
-
-            rateLimitMap.put(playerIP, currentTime);
-
-            boolean isValid = BadPacketsK.isValid(username, uuidString);
-
-            if (!isValid) {
-                blacklistedIPs.put(playerIP, System.currentTimeMillis());
-                event.setCancelled(true);
-                player.sendMessage("Bot Detected");
-                return;
-            }
-
-            System.out.println("Player " + username + " has IP: " + playerIP);
-        });
-    }
-
-    private String getNetworkPortion(String ip) {
-        String[] parts = ip.split("\\.");
-        if (parts.length >= 3) {
-            return parts[0] + "." + parts[1] + "." + parts[2];
+        if (!isValid) {
+            System.out.println("[DEBUG] handleLoginStart: Bot detected");
+            event.setCancelled(true); // Blocks the packet as malicious.
+            return;
         }
-        return ip;
-    }
 
-    public LoginStart(ExecutorService executorService) {
-        this.executorService = executorService;
+        // Logs a successful validation for monitoring purposes.
+        System.out.println("[DEBUG] handleLoginStart: Player " + username + " has successfully validated.");
     }
 }

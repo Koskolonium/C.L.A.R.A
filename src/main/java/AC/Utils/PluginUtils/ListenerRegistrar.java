@@ -66,7 +66,7 @@ public final class ListenerRegistrar {
         PacketEvents.getAPI().getEventManager().registerListener(new VehicleMove());
 
         // Register a packet listener for LoginStart Packets.
-        PacketEvents.getAPI().getEventManager().registerListener(new LoginStart(executorService));
+        PacketEvents.getAPI().getEventManager().registerListener(new LoginStart());
     }
 
     /**
