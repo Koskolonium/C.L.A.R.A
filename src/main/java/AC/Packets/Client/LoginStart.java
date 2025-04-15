@@ -10,17 +10,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class LoginStart extends PacketListenerAbstract {
-
-    // Constructor: Initializes the listener for login start packets.
-    public LoginStart() {
-    }
-
     // Listens for incoming packets and triggers handling logic when a LOGIN_START packet is detected.
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         // The packet type is checked to ensure we only handle relevant login start packets.
         if (event.getPacketType() == PacketType.Login.Client.LOGIN_START) {
-            handleLoginStart(event); // Delegates processing to a specific method.
+            handleLoginStart(event); // Delegates processing to handleLoginStart.
         }
     }
 
