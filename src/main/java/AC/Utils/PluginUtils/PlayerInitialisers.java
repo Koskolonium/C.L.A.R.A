@@ -1,6 +1,7 @@
 package AC.Utils.PluginUtils;
 
 import AC.Checks.Movement.SpeedCheckA;
+import AC.Utils.CheckUtils.PlayerData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -10,6 +11,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+
+import static AC.CLARA.playerDataMap;
 
 /**
  * The PlayerInitialisers class is responsible for handling player-related events
@@ -47,11 +50,16 @@ public class PlayerInitialisers implements Listener {
         playerOpStorage.updatePlayerOperatorStatus(player);
 
         // Create a new SpeedCheckA instance for the player
-        // This monitors the player's speed-related activities
         SpeedCheckA speedCheckA = new SpeedCheckA(playerUUID, playerOpStorage, threadPool);
 
         // Store the SpeedCheckA instance in the speedCheckMap for the player
         speedCheckMap.put(playerUUID, speedCheckA);
+
+        // Initialize PlayerData
+        playerDataMap.put(playerUUID, new PlayerData());
+
+        // Call the triggerPing method from sendPingPacket class
+        sendPingPacket.triggerPing(player);
     }
 
     /**
@@ -70,5 +78,7 @@ public class PlayerInitialisers implements Listener {
 
         // Remove the player's operator status from PlayerOpStorage
         playerOpStorage.removePlayerOperatorStatus(player);
+
+        playerDataMap.remove(playerUUID);
     }
 }

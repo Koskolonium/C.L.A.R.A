@@ -1,6 +1,7 @@
 package AC;
 
 import AC.Checks.Movement.SpeedCheckA;
+import AC.Utils.CheckUtils.PlayerData;
 import AC.Utils.PluginUtils.ListenerRegistrar;
 import AC.Utils.PluginUtils.Messages;
 import AC.Utils.PluginUtils.PlayerInitialisers;
@@ -25,6 +26,11 @@ public final class CLARA extends JavaPlugin {
     @Getter
     private ConcurrentHashMap<UUID, SpeedCheckA> speedCheckMap; // Tracks speed checks for individual players
     private ExecutorService executorService; // Thread pool for managing asynchronous tasks
+    public static ConcurrentHashMap<UUID, PlayerData> playerDataMap;
+    public static PlayerData getPlayerData(UUID uuid) {
+        return playerDataMap.get(uuid);
+    }
+    private final ConcurrentHashMap<String, Long> playerPingTimestamps = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
@@ -48,6 +54,8 @@ public final class CLARA extends JavaPlugin {
 
         // Register event listeners and pass dependencies (PlayerOpStorage, SpeedCheckMap, and ThreadPool)
         ListenerRegistrar.registerEventListeners(this, new PlayerInitialisers(playerOpStorage, speedCheckMap, executorService));
+
+        playerDataMap = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -61,6 +69,11 @@ public final class CLARA extends JavaPlugin {
         // Shut down the executor service to release resources
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
+
+            // Trigger shutdown for each SpeedCheckA instance which prevents the speedcheck logic from running.
+            for (SpeedCheckA speedCheckA : speedCheckMap.values()) {
+                speedCheckA.SpeedCheckAShutdown();  // Trigger shutdown for SpeedCheckA
+            }
         }
     }
 

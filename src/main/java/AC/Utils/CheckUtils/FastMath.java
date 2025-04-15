@@ -3,6 +3,8 @@ package AC.Utils.CheckUtils;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
+import java.util.List;
+
 /**
  * FastMath is a utility class for optimized mathematical operations.
  * This class provides reusable and efficient methods for common mathematical
@@ -117,4 +119,16 @@ public class FastMath {
         return (maxDelta / threshold) * 100;
     }
 
+    public double getAverage(List<Long> pings) {
+        if (pings.isEmpty()) {
+            return 0;
+        }
+        long sum = 0;
+        for (long ping : pings) {
+            sum += ping;
+        }
+        return (double) sum / pings.size(); // Calculate average
     }
+}
+
+

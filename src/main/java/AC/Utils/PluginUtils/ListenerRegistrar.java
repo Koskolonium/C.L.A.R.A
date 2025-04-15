@@ -67,6 +67,9 @@ public final class ListenerRegistrar {
 
         // Register a packet listener for LoginStart Packets.
         PacketEvents.getAPI().getEventManager().registerListener(new LoginStart());
+
+        // Register a packet listener for Pong packets.
+        PacketEvents.getAPI().getEventManager().registerListener(new Pong());
     }
 
     /**
