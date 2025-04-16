@@ -79,6 +79,13 @@ public class PlayerInitialisers implements Listener {
         // Remove the player's operator status from PlayerOpStorage
         playerOpStorage.removePlayerOperatorStatus(player);
 
+        // Retrieve and stop the ping logging thread for this player's data
+        PlayerData pd = playerDataMap.get(playerUUID);
+        if (pd != null) {
+            pd.stopPingLogging();
+        }
+
         playerDataMap.remove(playerUUID);
+
     }
 }
