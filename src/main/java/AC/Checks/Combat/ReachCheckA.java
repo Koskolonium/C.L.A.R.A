@@ -53,7 +53,7 @@ public class ReachCheckA {
                 victimHitbox.setSneaking(playerVictim.isSneaking());
                 updateHitbox(playerVictim);
 
-                long attackerPing = CLARA.getPlayerData(playerAttacker.getUniqueId()).getPing();
+                long attackerPing = (long) CLARA.getPlayerData(playerAttacker.getUniqueId()).getCurrentPing();
                 System.out.println("[ReachCheckA] Attacker Ping: " + attackerPing);
 
                 Vector victimPosition = getVictimPositionAtTime(playerVictim.getUniqueId(), attackerPing);

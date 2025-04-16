@@ -1,8 +1,10 @@
 package AC.Packets.Client;
 
+import AC.CLARA;
 import AC.Checks.Movement.SpeedCheckA;
 import AC.Packets.BadPackets.BadPacketsA;
 import AC.Utils.CheckUtils.FastMath;
+import AC.Utils.CheckUtils.PlayerData;
 import AC.Utils.PluginUtils.KickMessages;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -65,5 +67,7 @@ public class PositionLook extends PacketListenerAbstract {
         } catch (Exception e) {
             e.printStackTrace(); // Log exception for debugging purposes
         }
+        PlayerData playerData = CLARA.getPlayerData(playerUUID);
+        playerData.addPosition(x, y, z);
     }
 }

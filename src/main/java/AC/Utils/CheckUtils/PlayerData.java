@@ -2,15 +2,13 @@ package AC.Utils.CheckUtils;
 
 import lombok.Getter;
 import lombok.Setter;
-import AC.Utils.CheckUtils.FastMath;
 import java.util.LinkedList;
-import java.util.List;
 
 @Setter
 @Getter
 public class PlayerData {
 
-    private Long ping; // Player's current ping
+
     private Long pingTimestamp; // Timestamp of the current ping value
 
     // A list to store the last 100 positions of the player (newest position at the front)
@@ -75,11 +73,8 @@ public class PlayerData {
         // Create a fresh copy of the position history list to prevent modifying the original list
         LinkedList<Position> positionHistoryCopy = new LinkedList<>(positionHistory);
 
-        // Get the timestamp of the most recent position
-        long latestTimestamp = positionHistoryCopy.isEmpty() ? 0 : positionHistoryCopy.getFirst().getTimestamp();
-
-        // Calculate a target time, considering the latest position timestamp and a small adjustment factor
-        long targetTime = (long) ((latestTimestamp - (timeAgo / 2)) * 1.05);
+        long currentTimestamp = System.currentTimeMillis();
+        long targetTime = currentTimestamp - (timeAgo / 2);
 
         Position exactPosition = null;
         Position earlierPosition = null;
