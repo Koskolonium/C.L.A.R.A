@@ -56,8 +56,8 @@ public class ReachCheckA {
                 long attackerPing = (long) CLARA.getPlayerData(playerAttacker.getUniqueId()).getCurrentPing();
                 System.out.println("[ReachCheckA] Attacker Ping: " + attackerPing);
 
-                Vector victimPosition = getVictimPositionAtTime(playerVictim.getUniqueId(), attackerPing);
-                Vector attackerPosition = getVictimPositionAtTime(playerAttacker.getUniqueId(), attackerPing);
+                Vector victimPosition = getPlayerPositionAtTime(playerVictim.getUniqueId(), attackerPing);
+                Vector attackerPosition = getPlayerPositionAtTime(playerAttacker.getUniqueId(), attackerPing);
 
                 if (victimPosition == null || attackerPosition == null) {
                     System.out.println("[ReachCheckA] Invalid position(s) retrieved. Skipping reach check.");
@@ -93,17 +93,17 @@ public class ReachCheckA {
         }
     }
 
-    public Vector getVictimPositionAtTime(UUID victimUUID, long timeAgo) {
-        System.out.println("[ReachCheckA] Retrieving position for victim UUID: " + victimUUID + " at time: " + timeAgo + "ms ago");
-        PlayerData playerData = CLARA.getPlayerData(victimUUID);
+    public Vector getPlayerPositionAtTime(UUID entityUUID, long timeAgo) {
+        System.out.println("[ReachCheckA] Retrieving position for Player UUID: " + entityUUID + " at time: " + timeAgo + "ms ago");
+        PlayerData playerData = CLARA.getPlayerData(entityUUID);
         Position position = playerData.getPositionAtTime(timeAgo);
 
         if (position == null) {
-            System.out.println("[ReachCheckA] No position found for victim UUID: " + victimUUID + " at time: " + timeAgo);
+            System.out.println("[ReachCheckA] No position found for Player UUID: " + entityUUID + " at time: " + timeAgo);
             return null;
         }
 
-        System.out.println("[ReachCheckA] Position for victim UUID: " + victimUUID + " at time " + timeAgo + ": " + position);
+        System.out.println("[ReachCheckA] Position for Player UUID: " + entityUUID + " at time " + timeAgo + ": " + position);
         return new Vector(position.getX(), position.getY(), position.getZ());
     }
 }
