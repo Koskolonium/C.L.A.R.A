@@ -72,95 +72,104 @@ public class PlayerData {
     public Position getPositionAtTime(long timeAgo) {
         // Create a fresh copy of the position history list to prevent modifying the original list
         LinkedList<Position> positionHistoryCopy = new LinkedList<>(positionHistory);
+        if (positionHistoryCopy.isEmpty()) {
+            System.out.println("[DEBUG] Position history is empty, returning null.");
+            return null;
+        }
+        System.out.println("[PlayerData] Position History:");
+        for (Position position : positionHistoryCopy) {
+            System.out.println(" - Position{x=" + position.getX() + ", y=" + position.getY() +
+                    ", z=" + position.getZ() + ", timestamp=" + position.getTimestamp() + "}");
+        }
+        // Find the latest timestamp in the position history
+        long latestTimestamp = positionHistoryCopy.getFirst().getTimestamp();
 
-        long currentTimestamp = System.currentTimeMillis();
-        long targetTime = currentTimestamp - (timeAgo / 2);
+        // Updated target time calculation
+        long candidateTime = latestTimestamp - (timeAgo / 2);
+        long targetTime = candidateTime >= 50 ? candidateTime : (latestTimestamp - 50);
+
+        System.out.println("[DEBUG] Latest Timestamp: " + latestTimestamp);
+        System.out.println("[DEBUG] Target Time: " + targetTime);
 
         Position exactPosition = null;
         Position earlierPosition = null;
         Position laterPosition = null;
 
-        // Search through the position history to find a position that matches the target time
-        for (Position position : positionHistoryCopy) {
-            // If we find an exact match for the target time, return that position
-            if (position.getTimestamp() == targetTime) {
-                exactPosition = position;
-                break;
+        // Iterate to find closest positions
+        for (Position currentPosition : positionHistoryCopy) {
+            if (currentPosition.getTimestamp() == targetTime) {
+                System.out.println("[DEBUG] Found exact match at timestamp=" + currentPosition.getTimestamp());
+                return currentPosition; // Return immediately if we have an exact match
+            }
+            if (currentPosition.getTimestamp() <= targetTime) {
+                laterPosition = currentPosition;
+            }
+            if (currentPosition.getTimestamp() > targetTime) {
+                earlierPosition = currentPosition;
+                break; // Stop after finding the first earlierPosition
             }
         }
 
-        // If an exact match is found, return it immediately
-        if (exactPosition != null) {
-            return exactPosition;
+        // If there's an earlier position but no later position, default to earlier position
+        if (laterPosition == null && earlierPosition != null) {
+            System.out.println("[DEBUG] No later position found, returning earlier position.");
+            return earlierPosition;
         }
+
+        System.out.println("[DEBUG] Later Position: " + (laterPosition != null ? laterPosition.getTimestamp() : "null"));
+        System.out.println("[DEBUG] Earlier Position: " + (earlierPosition != null ? earlierPosition.getTimestamp() : "null"));
 
         // Sort the position history by timestamp (ascending order)
         positionHistoryCopy.sort((pos1, pos2) -> Long.compare(pos1.getTimestamp(), pos2.getTimestamp()));
 
-        // Now, find the closest positions before and after the target time
-        for (int i = 0; i < positionHistoryCopy.size(); i++) {
-            Position currentPosition = positionHistoryCopy.get(i);
+        System.out.println("[DEBUG] Sorted Position History");
+
+        // Now, find the positions bracketing the target time
+        for (Position currentPosition : positionHistoryCopy) {
             if (currentPosition.getTimestamp() <= targetTime) {
-                laterPosition = currentPosition; // This is the most recent position before or at target time
-            }
-            if (currentPosition.getTimestamp() > targetTime) {
-                earlierPosition = currentPosition; // This is the next position after the target time
-                break; // Exit the loop once the earlier position is found
+                laterPosition = currentPosition;
+            } else if (currentPosition.getTimestamp() > targetTime && earlierPosition == null) {
+                earlierPosition = currentPosition;
+                break; // Once found, no need to continue iterating
             }
         }
 
-        // If we have both earlier and later positions, interpolate between them to estimate the position at the target time
-        if (earlierPosition != null && laterPosition != null) {
-            // If the x and z coordinates are the same, no need to interpolate, just return the later position
-            if (laterPosition.getX() == earlierPosition.getX() && laterPosition.getZ() == earlierPosition.getZ()) {
-                return laterPosition;
-            }
+        System.out.println("[DEBUG] Later Position: " + (laterPosition != null ? laterPosition.getTimestamp() : "null"));
+        System.out.println("[DEBUG] Earlier Position: " + (earlierPosition != null ? earlierPosition.getTimestamp() : "null"));
 
-            // Calculate the time difference between the two positions
+        if (earlierPosition != null && laterPosition != null) {
             long timeDiff = laterPosition.getTimestamp() - earlierPosition.getTimestamp();
 
             if (timeDiff == 0) {
-                // Avoid division by zero if both timestamps are identical
+                System.out.println("[DEBUG] Avoided division by zero, returning later position.");
                 return laterPosition;
             }
 
-            // Calculate the horizontal distance between the two positions (ignoring Y axis for simplicity)
             double deltaX = laterPosition.getX() - earlierPosition.getX();
             double deltaZ = laterPosition.getZ() - earlierPosition.getZ();
-            double distance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ); // Pythagorean theorem
-
-            // Calculate the speed of movement (in blocks per millisecond)
+            double distance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
             double speed = distance / timeDiff;
-
-            // Calculate the time difference between the later position and the target time
             long timeToTarget = targetTime - laterPosition.getTimestamp();
-
-            // Estimate the distance the player would have traveled from the later position to the target time
             double distanceToTarget = speed * timeToTarget;
-
-            // Normalize the direction of movement
             double directionX = deltaX / distance;
             double directionZ = deltaZ / distance;
 
-            // Estimate the new position at the target time based on movement speed and direction
             double estimatedX = laterPosition.getX() + directionX * distanceToTarget;
             double estimatedZ = laterPosition.getZ() + directionZ * distanceToTarget;
+            double estimatedY = laterPosition.getY();
 
-            // Round the estimated coordinates to 15 decimal places for precision
+            // Rounding to ensure precision
             estimatedX = Math.round(estimatedX * 1e15) / 1e15;
             estimatedZ = Math.round(estimatedZ * 1e15) / 1e15;
-            double estimatedY = Math.round(laterPosition.getY() * 1e15) / 1e15; // Also round Y coordinate
+            estimatedY = Math.round(estimatedY * 1e15) / 1e15;
 
-            // Create and return the estimated position
-            Position estimatedPosition = new Position(estimatedX, estimatedY, estimatedZ, targetTime);
+            System.out.println("[DEBUG] Estimated Position: X=" + estimatedX +
+                    ", Y=" + estimatedY + ", Z=" + estimatedZ);
 
-            System.out.println("[PlayerData] Estimated position (rounded): X=" + estimatedX + ", Y=" + estimatedY + ", Z=" + estimatedZ);
-
-            return estimatedPosition;
+            return new Position(estimatedX, estimatedY, estimatedZ, targetTime);
         }
 
-        // If no suitable positions were found, log and return null
-        System.out.println("[PlayerData] No positions available at all.");
+        System.out.println("[DEBUG] No valid positions found, returning null.");
         return null;
     }
 
@@ -186,7 +195,6 @@ public class PlayerData {
                 try {
                     // Calculate the average ping using the FastMath utility
                     double averagePing = FastMath.getAverage(pingHistory);
-                    System.out.println("Average Ping: " + Math.round(averagePing));
                     lastAveragePing = averagePing;
                     Thread.sleep(1000); // Wait for 1 second before recalculating
                 } catch (InterruptedException e) {
